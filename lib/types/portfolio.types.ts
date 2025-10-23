@@ -31,6 +31,7 @@ export interface DraggableWindowProps {
   toggleMaximizeWindow: (id: string) => void;
   updateWindowPos: (id: string, x: number, y: number) => void;
   updateWindowSize: (id: string, width: number, height: number) => void;
+  playClickSound: () => void
 }
 
 // Props for DesktopIcon

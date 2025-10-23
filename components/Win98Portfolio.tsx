@@ -216,7 +216,7 @@ const Win98Portfolio: React.FC<Win98PortfolioProps> = ({ onShutdown }) => {
           toggleMaximizeWindow={toggleMaximizeWindow}
           updateWindowPos={updateWindowPos}
           updateWindowSize={updateWindowSize}
-          playClickSound={playClickSound} // <-- NEW PROP
+          playClickSound={playClickSound}
         />
       ))}
 

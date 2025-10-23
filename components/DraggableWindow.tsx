@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react'; // <-- MODIFIED
 import { X, Minus, Square } from 'lucide-react';
 import { DraggableWindowProps } from '@/lib/types/portfolio.types';
 
@@ -13,7 +13,8 @@ const DraggableWindow: React.FC<DraggableWindowProps> = ({
   minimizeWindow,
   toggleMaximizeWindow,
   updateWindowPos,
-  updateWindowSize
+  updateWindowSize,
+  playClickSound
 }) => {
   const [dragging, setDragging] = useState<boolean>(false);
   const [resizing, setResizing] = useState<boolean>(false);
@@ -21,16 +22,26 @@ const DraggableWindow: React.FC<DraggableWindowProps> = ({
   const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, width: 0, height: 0 });
   const windowRef = useRef<HTMLDivElement | null>(null);
 
+  // --- NEW Focus Handler ---
+  // This function handles focusing the window and playing the sound
+  const handleFocus = useCallback(() => { // <-- NEW
+    if (activeWindow !== win.id) { // <-- NEW
+      playClickSound(); // <-- NEW
+    } // <-- NEW
+    setActiveWindow(win.id); // <-- NEW
+  }, [activeWindow, win.id, playClickSound, setActiveWindow]); // <-- NEW
+  // --- End Focus Handler ---
+
   // Dragging Logic
   const handleDragMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (win.maximized || e.target.closest('.window-content') || e.target.closest('.window-button') || e.target.closest('.resize-handle')) return;
+    if (win.maximized || (e.target as HTMLElement).closest('.window-content') || (e.target as HTMLElement).closest('.window-button') || (e.target as HTMLElement).closest('.resize-handle')) return;
     e.preventDefault();
     setDragging(true);
     setDragOffset({
       x: e.clientX - win.x,
       y: e.clientY - win.y
     });
-    setActiveWindow(win.id);
+    handleFocus(); // <-- MODIFIED
   };
 
   // Resizing Logic
@@ -45,7 +56,7 @@ const DraggableWindow: React.FC<DraggableWindowProps> = ({
       width: win.width,
       height: win.height
     });
-    setActiveWindow(win.id);
+    handleFocus(); // <-- MODIFIED
   };
 
   useEffect(() => {
@@ -130,7 +141,7 @@ const DraggableWindow: React.FC<DraggableWindowProps> = ({
         borderRightColor: '#000000',
         borderBottomColor: '#000000'
       }}
-      onClick={() => setActiveWindow(win.id)}
+      onClick={handleFocus} // <-- MODIFIED (handles clicks on content area, etc.)
     >
       <div
         className={`flex items-center justify-between px-1 py-1 text-white text-sm font-bold ${
@@ -154,7 +165,10 @@ const DraggableWindow: React.FC<DraggableWindowProps> = ({
               borderRightColor: '#000000',
               borderBottomColor: '#000000'
             }}
-            onClick={() => minimizeWindow(win.id)}
+            onClick={(e) => { // <-- MODIFIED
+              e.stopPropagation(); // <-- NEW (prevent parent onClick from firing)
+              minimizeWindow(win.id);
+            }} // <-- MODIFIED
           >
             <Minus size={10} />
           </button>
@@ -166,7 +180,10 @@ const DraggableWindow: React.FC<DraggableWindowProps> = ({
               borderRightColor: '#000000',
               borderBottomColor: '#000000'
             }}
-            onClick={() => toggleMaximizeWindow(win.id)}
+            onClick={(e) => { // <-- MODIFIED
+              e.stopPropagation(); // <-- NEW (prevent parent onClick from firing)
+              toggleMaximizeWindow(win.id);
+            }} // <-- MODIFIED
           >
             <Square size={8} />
           </button>
@@ -178,7 +195,10 @@ const DraggableWindow: React.FC<DraggableWindowProps> = ({
               borderRightColor: '#000000',
               borderBottomColor: '#000000'
             }}
-            onClick={() => closeWindow(win.id)}
+            onClick={(e) => { // <-- MODIFIED
+              e.stopPropagation(); // <-- NEW (prevent parent onClick from firing)
+              closeWindow(win.id);
+            }} // <-- MODIFIED
           >
             <X size={10} />
           </button>
