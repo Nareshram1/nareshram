@@ -27,7 +27,11 @@ export default function HomePage() {
     setTimeout(() => setBootStep("desktop"), 2000);
   }, [booting]); // Dependency on 'booting' state
 
-  const handleShutdown = useCallback(() => setBootStep("shutdown"), []);
+  const handleShutdown = useCallback(() => {
+    const shutdownaudio = new Audio('/sounds/shutdown.mp3');
+    shutdownaudio.play().catch(e => console.error("Error playing shutdown sound:", e));
+    setBootStep("shutdown")
+  }, []);
   const handleRestart = useCallback(() => {
     setBootStep("login");
     setBooting(false);

@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState, useEffect, useCallback } from 'react'; // <-- MODIFIED (added useCallback)
+import Image from 'next/image'
 import { 
   Folder, FileText, Globe, Mail, Settings, 
   Trash2, Volume2, User 
@@ -20,33 +21,42 @@ import SkillsContent from './content/SkillsContent';
 import ContactContent from './content/ContactContent';
 import RecycleBinContent from './content/RecycleBinContent';
 import ReadMeContent from './content/ReadMeContent';
-
+import MyProjectsContent from './content/MyProjectsContent';
 
 // Main Portfolio Component
-const Win98Portfolio: React.FC<Win98PortfolioProps> = ({ onShutdown }) => {
+const Win98Portfolio: React.FC<Win98PortfolioProps> = () => {
   const [windows, setWindows] = useState<WindowState[]>([]);
   const [startMenuOpen, setStartMenuOpen] = useState<boolean>(false);
   const [time, setTime] = useState<Date>(new Date());
   const [wallpaper, setWallpaper] = useState<Wallpaper>('teal');
   const [activeWindow, setActiveWindow] = useState<string | null>(null);
+  const [showSystemTray, setShowSystemTray] = useState<boolean>(false);
+  const [cpuUsage, setCpuUsage] = useState<number>(0);
+  const [volume, setVolume] = useState<number>(50);
   
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  // --- Sound Functions ---
-  // NOTE: Ensure you have '/sounds/click.mp3' and '/sounds/error.mp3' in your /public/sounds folder
-  const playClickSound = useCallback(() => { // <-- NEW
-    const audio = new Audio('/sounds/click.mp3'); // <-- NEW
-    audio.play().catch(e => console.error("Error playing click sound:", e)); // <-- NEW
-  }, []); // <-- NEW
+  // Simulate CPU usage
+  useEffect(() => {
+    const cpuTimer = setInterval(() => {
+      const newUsage = Math.floor(Math.random() * 30) + (windows.length * 5);
+      setCpuUsage(Math.min(newUsage, 100));
+    }, 2000);
+    return () => clearInterval(cpuTimer);
+  }, [windows.length]);
 
-  const playErrorSound = useCallback(() => { // <-- NEW
-    const audio = new Audio('/sounds/error.mp3'); // <-- NEW
-    audio.play().catch(e => console.error("Error playing error sound:", e)); // <-- NEW
-  }, []); // <-- NEW
-  // --- End Sound Functions ---
+  const playClickSound = useCallback(() => {
+    const audio = new Audio('/sounds/click.mp3');
+    audio.play().catch(e => console.error("Error playing click sound:", e));
+  }, []);
+
+  const playErrorSound = useCallback(() => {
+    const audio = new Audio('/sounds/error.mp3');
+    audio.play().catch(e => console.error("Error playing error sound:", e));
+  }, []);
 
   const wallpapers: Record<Wallpaper, string> = {
     teal: 'bg-[#008080]',
@@ -60,10 +70,9 @@ const Win98Portfolio: React.FC<Win98PortfolioProps> = ({ onShutdown }) => {
     title: string, 
     content: React.ReactNode, 
     icon: React.ReactNode, 
-    width = 600, 
-    height = 400
+    width: number = 600, 
+    height: number = 400
   ) => {
-    // Sound is played on the icon/button click, not here, to avoid double-sounds
     if (windows.find(w => w.id === id)) {
       setActiveWindow(id);
       restoreWindow(id);
@@ -88,7 +97,7 @@ const Win98Portfolio: React.FC<Win98PortfolioProps> = ({ onShutdown }) => {
   };
 
   const closeWindow = (id: string) => {
-    playClickSound(); // <-- NEW
+    playClickSound();
     setWindows(windows.filter(w => w.id !== id));
     if (activeWindow === id) {
       const remainingWindows = windows.filter(w => w.id !== id && !w.minimized);
@@ -97,20 +106,19 @@ const Win98Portfolio: React.FC<Win98PortfolioProps> = ({ onShutdown }) => {
   };
 
   const minimizeWindow = (id: string) => {
-    playClickSound(); // <-- NEW
+    playClickSound();
     setWindows(windows.map(w => w.id === id ? {...w, minimized: true} : w));
     const remainingWindows = windows.filter(w => w.id !== id && !w.minimized);
     setActiveWindow(remainingWindows.length > 0 ? remainingWindows[remainingWindows.length - 1].id : null);
   };
 
   const restoreWindow = (id: string) => {
-    // Sound is played on the taskbar click, not here
     setWindows(windows.map(w => w.id === id ? {...w, minimized: false} : w));
     setActiveWindow(id);
   };
 
   const toggleMaximizeWindow = (id: string) => {
-    playClickSound(); // <-- NEW
+    playClickSound();
     setWindows(prevWindows =>
       prevWindows.map(w => {
         if (w.id === id) {
@@ -154,7 +162,12 @@ const Win98Portfolio: React.FC<Win98PortfolioProps> = ({ onShutdown }) => {
   }, []);
 
   return (
-    <div className={`h-screen w-screen ${wallpapers[wallpaper]} overflow-hidden relative font-sans`}>
+    <div 
+      className={`h-screen w-screen ${wallpapers[wallpaper]} overflow-hidden relative font-sans`}
+      onClick={() => {
+        if (showSystemTray) setShowSystemTray(false);
+      }}
+    >
       <style jsx global>{`
         @import url('https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&display=swap');
         .font-sans {
@@ -170,37 +183,44 @@ const Win98Portfolio: React.FC<Win98PortfolioProps> = ({ onShutdown }) => {
         <DesktopIcon
           icon={<Folder className="text-yellow-600" size={32} />}
           label="My Computer"
-          onClick={() => { // <-- MODIFIED
-            playClickSound(); // <-- NEW
-            createWindow('projects', 'My Computer', <ProjectsContent />, <Folder size={16} />); // <-- MODIFIED
-          }} // <-- MODIFIED
+          onClick={() => {
+            playClickSound();
+            createWindow('projects', 'My Computer', <ProjectsContent />, <Folder size={16} />);
+          }}
         />
         <DesktopIcon
           icon={<FileText size={32} />}
           label="ReadMe.txt"
-          onClick={() => { // <-- MODIFIED
-            playClickSound(); // <-- NEW
-            createWindow('readme', 'ReadMe.txt - Notepad', <ReadMeContent />, <FileText size={16} />, 500, 400); // <-- MODIFIED
-          }} // <-- MODIFIED
+          onClick={() => {
+            playClickSound();
+            createWindow('readme', 'ReadMe.txt - Notepad', <ReadMeContent />, <FileText size={16} />, 500, 400);
+          }}
         />
         <DesktopIcon
-          icon={<Globe size={32} />}
-          label="Internet"
-          onClick={() => { // <-- MODIFIED
-            playClickSound(); // <-- NEW
-            // Example of using the error sound:
-            // playErrorSound();
-            // alert("Connection failed: No dial-up modem detected.");
-            createWindow('ie', 'Internet Explorer', <div className="p-4"><p>This portfolio IS the internet. (Or you could embed an iframe here!)</p></div>, <Globe size={16} />); // <-- MODIFIED
-          }} // <-- MODIFIED
+          icon={<Folder className="text-yellow-600" size={32} />}
+          label="My Projects"
+          onClick={() => {
+            playClickSound();
+            createWindow(
+              'my_projects', 
+              'My Projects', 
+              <MyProjectsContent 
+                createWindow={createWindow} 
+                playClickSound={playClickSound} 
+              />, 
+              <Folder size={16} />,
+              500,
+              350
+            );
+          }}
         />
         <DesktopIcon
           icon={<Trash2 className="text-gray-700" size={32} />}
           label="Recycle Bin"
-          onClick={() => { // <-- MODIFIED
-            playClickSound(); // <-- NEW
-            createWindow('recycle', 'Recycle Bin', <RecycleBinContent />, <Trash2 size={16} />); // <-- MODIFIED
-          }} // <-- MODIFIED
+          onClick={() => {
+            playClickSound();
+            createWindow('recycle', 'Recycle Bin', <RecycleBinContent />, <Trash2 size={16} />);
+          }}
         />
       </div>
 
@@ -221,19 +241,54 @@ const Win98Portfolio: React.FC<Win98PortfolioProps> = ({ onShutdown }) => {
       ))}
 
       {/* Taskbar */}
-      <div className="absolute bottom-0 left-0 right-0 h-10 bg-[#c0c0c0] border-t-2 border-white flex items-center px-1 gap-1 z-40">
+      <div className="absolute bottom-0 left-0 right-0 h-10 bg-[#c0c0c0] border-t-2 border-white flex items-center px-1 gap-1 z-40 ">
         <button
-          className={`px-3 py-1 bg-[#c0c0c0] border-2 font-bold flex items-center gap-2 ${startMenuOpen ? 'border-t-black border-l-black border-r-white border-b-white' : 'border-t-white border-l-white border-r-black border-b-black'}`}
-          onClick={() => { // <-- MODIFIED
-            playClickSound(); // <-- NEW
-            setStartMenuOpen(!startMenuOpen); // <-- MODIFIED
-          }} // <-- MODIFIED
+          className={`px-3 py-1 bg-[#c0c0c0] border-2 font-bold flex items-center gap-2 cursor-pointer ${startMenuOpen ? 'border-t-black border-l-black border-r-white border-b-white' : 'border-t-white border-l-white border-r-black border-b-black'}`}
+          onClick={() => {
+            playClickSound();
+            setStartMenuOpen(!startMenuOpen);
+          }}
         >
-          <div className="w-5 h-5 bg-gradient-to-br from-[#000080] to-[#1084d0] border border-white flex items-center justify-center">
-            <div className="w-2 h-2 bg-white/70 shadow-md"></div>
-          </div>
+            <img src='/start-logo.png' alt='Start' width={25} height={25}/>
+          
           <span className="text-black">Start</span>
         </button>
+
+        <div className="h-full border-l-2 border-gray-500 border-r-2 border-white mx-1"></div>
+
+        {/* Quick Launch Icons */}
+        <div className="flex gap-1 items-center h-full px-1">
+          <button
+            className="w-7 h-7 border-2 border-transparent hover:border-white hover:border-t-white hover:border-l-white hover:border-r-black hover:border-b-black flex items-center justify-center bg-[#c0c0c0]"
+            onClick={() => {
+              playClickSound();
+              createWindow('readme', 'ReadMe.txt - Notepad', <ReadMeContent />, <FileText size={16} />, 500, 400);
+            }}
+            title="ReadMe.txt"
+          >
+            <FileText size={16} />
+          </button>
+          <button
+            className="w-7 h-7 border-2 border-transparent hover:border-white hover:border-t-white hover:border-l-white hover:border-r-black hover:border-b-black flex items-center justify-center bg-[#c0c0c0]"
+            onClick={() => {
+              playClickSound();
+              createWindow('contact', 'Outlook Express - New Message', <ContactContent />, <Mail size={16} />);
+            }}
+            title="Outlook Express"
+          >
+            <Mail size={16} className="text-blue-600" />
+          </button>
+          <button
+            className="w-7 h-7 border-2 border-transparent hover:border-white hover:border-t-white hover:border-l-white hover:border-r-black hover:border-b-black flex items-center justify-center bg-[#c0c0c0]"
+            onClick={() => {
+              playClickSound();
+              window.open('https://github.com/Nareshram1', '_blank');
+            }}
+            title="Internet Explorer"
+          >
+            <Globe size={16} className="text-blue-700" />
+          </button>
+        </div>
 
         <div className="h-full border-l-2 border-gray-500 border-r-2 border-white mx-1"></div>
 
@@ -252,8 +307,8 @@ const Win98Portfolio: React.FC<Win98PortfolioProps> = ({ onShutdown }) => {
                 borderRightColor: activeWindow === win.id && !win.minimized ? '#ffffff' : '#000000',
                 borderBottomColor: activeWindow === win.id && !win.minimized ? '#ffffff' : '#000000'
               }}
-              onClick={() => { // <-- MODIFIED
-                playClickSound(); // <-- NEW
+              onClick={() => {
+                playClickSound();
                 if (win.minimized) {
                   restoreWindow(win.id);
                 } else if (activeWindow === win.id) {
@@ -261,7 +316,7 @@ const Win98Portfolio: React.FC<Win98PortfolioProps> = ({ onShutdown }) => {
                 } else {
                   setActiveWindow(win.id);
                 }
-              }} // <-- MODIFIED
+              }}
             >
               {win.icon}
               <span className="truncate">{win.title}</span>
@@ -269,14 +324,92 @@ const Win98Portfolio: React.FC<Win98PortfolioProps> = ({ onShutdown }) => {
           ))}
         </div>
 
-        <div className="border-2 px-3 py-1 text-sm h-7 flex items-center" style={{
+        {/* System Tray */}
+        <div className="border-2 px-2 h-7 flex items-center gap-2" style={{
           borderTopColor: '#808080',
           borderLeftColor: '#808080',
           borderRightColor: '#ffffff',
           borderBottomColor: '#ffffff'
         }}>
-          {time.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+          {/* CPU Indicator */}
+          <div 
+            className="relative group cursor-pointer"
+            title={`CPU Usage: ${cpuUsage}%`}
+          >
+            <div className="w-4 h-4 bg-gray-700 border border-gray-900 flex items-end justify-center overflow-hidden">
+              <div 
+                className="w-full bg-green-500 transition-all duration-300"
+                style={{ height: `${cpuUsage}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Volume Control */}
+          <button
+            className="relative group"
+            onClick={(e) => {
+              e.stopPropagation();
+              playClickSound();
+              setShowSystemTray(!showSystemTray);
+            }}
+            title={`Volume: ${volume}%`}
+          >
+            <Volume2 size={16} className={volume === 0 ? 'text-red-600' : ''} />
+          </button>
+
+          {/* Clock with Easter Egg */}
+          <button
+            className="text-sm font-medium hover:bg-[#000080] hover:text-white px-1 transition-colors"
+            onClick={() => {
+              playClickSound();
+              const messages = [
+                "It's always time to code! 💻",
+                "Don't forget to take a break! ☕",
+                "You've been here for a while... 👀",
+                "Time flies when you're having fun! 🚀",
+                "Quick! Check your emails! 📧"
+              ];
+              alert(messages[Math.floor(Math.random() * messages.length)]);
+            }}
+            title="Click for a surprise!"
+          >
+            {time.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+          </button>
         </div>
+
+        {/* Volume Slider Popup */}
+        {showSystemTray && (
+          <div
+            className="absolute bottom-12 right-2 w-48 bg-[#c0c0c0] border-2 border-white shadow-lg p-3 z-50"
+            style={{
+              borderTopColor: '#ffffff',
+              borderLeftColor: '#ffffff',
+              borderRightColor: '#000000',
+              borderBottomColor: '#000000'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="text-xs font-bold mb-2">Volume Control</div>
+            <div className="flex items-center gap-2">
+              <Volume2 size={14} />
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={volume}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  setVolume(parseInt(e.target.value));
+                  playClickSound();
+                }}
+                className="flex-1"
+              />
+              <span className="text-xs w-8">{volume}%</span>
+            </div>
+            <div className="mt-2 text-xs text-gray-600">
+              System Tray: {windows.length} window{windows.length !== 1 ? 's' : ''} open
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Start Menu */}
@@ -289,7 +422,7 @@ const Win98Portfolio: React.FC<Win98PortfolioProps> = ({ onShutdown }) => {
             borderRightColor: '#000000',
             borderBottomColor: '#000000'
           }}
-          onClick={() => setStartMenuOpen(false)} // This outer click closes the menu
+          onClick={() => setStartMenuOpen(false)}
         >
           <div className="bg-gradient-to-b from-[#000080] to-[#1084d0] text-white py-2 px-3 font-bold text-xl flex items-end">
             <span className="italic text-2xl">Windows</span><span className="font-normal text-lg">98</span>
@@ -298,50 +431,50 @@ const Win98Portfolio: React.FC<Win98PortfolioProps> = ({ onShutdown }) => {
           <div className="p-1">
             <button
               className="w-full text-left px-3 py-2 hover:bg-[#000080] hover:text-white flex items-center gap-2"
-              onClick={() => { // <-- MODIFIED
-                playClickSound(); // <-- NEW
+              onClick={() => {
+                playClickSound();
                 createWindow('about', 'About Me - System Properties', <AboutContent />, <User size={16} />);
-              }} // <-- MODIFIED
+              }}
             >
               <User size={20} />
               About Me
             </button>
             <button
               className="w-full text-left px-3 py-2 hover:bg-[#000080] hover:text-white flex items-center gap-2"
-              onClick={() => { // <-- MODIFIED
-                playClickSound(); // <-- NEW
+              onClick={() => {
+                playClickSound();
                 createWindow('projects', 'My Computer', <ProjectsContent />, <Folder size={16} />);
-              }} // <-- MODIFIED
+              }}
             >
               <Folder size={20} />
               Projects
             </button>
-              <button
+            <button
               className="w-full text-left px-3 py-2 hover:bg-[#000080] hover:text-white flex items-center gap-2"
-              onClick={() => { // <-- MODIFIED
-                playClickSound(); // <-- NEW
+              onClick={() => {
+                playClickSound();
                 createWindow('readme', 'ReadMe.txt - Notepad', <ReadMeContent />, <FileText size={16} />, 500, 400);
-              }} // <-- MODIFIED
+              }}
             >
               <FileText size={20} />
               ReadMe.txt
             </button>
             <button
               className="w-full text-left px-3 py-2 hover:bg-[#000080] hover:text-white flex items-center gap-2"
-              onClick={() => { // <-- MODIFIED
-                playClickSound(); // <-- NEW
+              onClick={() => {
+                playClickSound();
                 createWindow('skills', 'Device Manager', <SkillsContent />, <Settings size={16} />);
-              }} // <-- MODIFIED
+              }}
             >
               <Settings size={20} />
               Skills
             </button>
             <button
               className="w-full text-left px-3 py-2 hover:bg-[#000080] hover:text-white flex items-center gap-2"
-              onClick={() => { // <-- MODIFIED
-                playClickSound(); // <-- NEW
+              onClick={() => {
+                playClickSound();
                 createWindow('contact', 'Outlook Express - New Message', <ContactContent />, <Mail size={16} />);
-              }} // <-- MODIFIED
+              }}
             >
               <Mail size={20} />
               Contact
@@ -349,10 +482,10 @@ const Win98Portfolio: React.FC<Win98PortfolioProps> = ({ onShutdown }) => {
             <div className="border-t-2 border-[#808080] my-1 mx-2"></div>
             <button
               className="w-full text-left px-3 py-2 hover:bg-[#000080] hover:text-white flex items-center gap-2"
-              onClick={() => { // <-- MODIFIED
-                playClickSound(); // <-- NEW
-                onShutdown(); // <-- MODIFIED
-              }} // <-- MODIFIED
+              onClick={() => { 
+                playClickSound();
+                alert('Thanks for visiting! 👋');
+              }} 
             >
               <Volume2 size={20} />
               Shut Down...
