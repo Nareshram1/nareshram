@@ -1,0 +1,79 @@
+/* Import a pixel font */
+@import url('https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&display=swap');
+
+/* Default system-wide font (Tahoma/Verdana look-alike) */
+body, button, input, textarea, select {
+  font-family: "Inter", "Tahoma", "Verdana", sans-serif;
+  font-size: 14px;
+  /* Disable font smoothing for a crisper, more retro feel */
+  -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.font-sans-win98 {
+  font-family: "Inter", "Tahoma", "Verdana", sans-serif;
+}
+
+/* Specific class for pixelated/logo text */
+.font-pixelated {
+  font-family: "Pixelify Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 700;
+  font-style: normal;
+}
+
+/* Classic Win98 Button Style */
+@layer components {
+  .win98-button {
+    @apply bg-[#c0c0c0] border-2 shadow-sm px-4 py-1 text-black;
+    border-top-color: #ffffff;
+    border-left-color: #ffffff;
+    border-right-color: #000000;
+    border-bottom-color: #000000;
+  }
+
+  .win98-button:active,
+  .win98-button.active {
+    @apply shadow-inner;
+    border-top-color: #000000;
+    border-left-color: #000000;
+    border-right-color: #ffffff;
+    border-bottom-color: #ffffff;
+    /* Simulate being pushed in */
+    padding-top: 0.3rem; /* 1px + py-1 */
+    padding-left: 1.05rem; /* 1px + px-4 */
+  }
+
+  /* Sunken inset border style */
+  .win98-inset {
+    @apply border-2 bg-white;
+    border-top-color: #808080;
+    border-left-color: #808080;
+    border-right-color: #ffffff;
+    border-bottom-color: #ffffff;
+  }
+
+  /* Raised outset border style (like the taskbar tray) */
+  .win98-outset {
+    @apply border-2;
+    border-top-color: #808080;
+    border-left-color: #808080;
+    border-right-color: #ffffff;
+    border-bottom-color: #ffffff;
+  }
+}
+
+/* White text with black shadow for desktop icons */
+.text-shadow {
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+}
+
+/* Simple pixelated cursor */
+body, .win98-button, .desktop-icon, .window-title-bar {
+  cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' style='font-size: 32px; fill: white; stroke: black; stroke-width: 2;'><polygon points='5,5 5,27 12,20 18,30 22,28 16,19 25,19'/></svg>") 0 0, auto;
+}
+
+/* Resize cursors (example for 'move') */
+.window-title-bar {
+   cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='white' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M5 9l-3 3l3 3M9 5l3-3l3 3M15 19l-3 3l-3-3M19 9l3 3l-3 3M2 12h20M12 2v20'/></svg>") 12 12, move;
+}
