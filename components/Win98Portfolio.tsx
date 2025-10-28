@@ -4,7 +4,8 @@ import React, { useState, useEffect, useCallback } from 'react'; // <-- MODIFIED
 import Image from 'next/image'
 import { 
   Folder, FileText, Globe, Mail, Settings, 
-  Trash2, Volume2, User 
+  Trash2, Volume2, User, 
+  Gamepad2
 } from 'lucide-react';
 import { 
   WindowState, 
@@ -21,7 +22,11 @@ import SkillsContent from './content/SkillsContent';
 import ContactContent from './content/ContactContent';
 import RecycleBinContent from './content/RecycleBinContent';
 import ReadMeContent from './content/ReadMeContent';
-import MyProjectsContent from './content/MyProjectsContent';
+// import MyProjectsContent from './content/MyProjectsContent';
+import PortfolioWebpageContent from './content/PortfolioWebpageContent';
+import SnakeGameContent from './content/SnakeGameContent';
+import MinesweeperContent from './content/MinesweeperContent';
+import TrollGame from './content/RetroGamesHub';
 
 // Main Portfolio Component
 const Win98Portfolio: React.FC<Win98PortfolioProps> = () => {
@@ -188,6 +193,25 @@ const Win98Portfolio: React.FC<Win98PortfolioProps> = () => {
             createWindow('projects', 'My Computer', <ProjectsContent />, <Folder size={16} />);
           }}
         />
+
+        <DesktopIcon
+          icon={<Globe className="text-blue-600" size={32} />}
+          label="My Homepage"
+          onClick={() => {
+            playClickSound();
+            createWindow(
+              'homepage', 
+              'My Homepage - Internet Explorer', 
+              <PortfolioWebpageContent 
+                createWindow={createWindow} 
+                playClickSound={playClickSound} 
+              />, 
+              <Globe size={16} />,
+              640, // Classic 640x480 vibe
+              480
+            );
+          }}
+        />
         <DesktopIcon
           icon={<FileText size={32} />}
           label="ReadMe.txt"
@@ -196,7 +220,7 @@ const Win98Portfolio: React.FC<Win98PortfolioProps> = () => {
             createWindow('readme', 'ReadMe.txt - Notepad', <ReadMeContent />, <FileText size={16} />, 500, 400);
           }}
         />
-        <DesktopIcon
+        {/* <DesktopIcon
           icon={<Folder className="text-yellow-600" size={32} />}
           label="My Projects"
           onClick={() => {
@@ -211,6 +235,51 @@ const Win98Portfolio: React.FC<Win98PortfolioProps> = () => {
               <Folder size={16} />,
               500,
               350
+            );
+          }}
+        /> */}
+        <DesktopIcon
+          icon={<Gamepad2 className="text-purple-600" size={32} />}
+          label="Snake"
+          onClick={() => {
+            playClickSound();
+            createWindow(
+              'snake_game', 
+              'Snake', 
+              <SnakeGameContent />, 
+              <Gamepad2 size={16} />,
+              340, // Adjust width
+              420  // Adjust height
+            );
+          }}
+        />
+        <DesktopIcon
+          icon={<Gamepad2 className="text-gray-700" size={32} />}
+          label="Minesweeper"
+          onClick={() => {
+            playClickSound();
+            createWindow(
+              'minesweeper', 
+              'Minesweeper', 
+              <MinesweeperContent />, 
+              <Gamepad2 size={16} />,
+              260, // Adjust width
+              360  // Adjust height
+            );
+          }}
+        />
+        <DesktopIcon
+          icon={<Gamepad2 className="text-gray-700" size={32} />}
+          label="Don't play this"
+          onClick={() => {
+            playClickSound();
+            createWindow(
+              'game', 
+              'Game', 
+              <TrollGame />, 
+              <Gamepad2 size={16} />,
+              260, // Adjust width
+              360  // Adjust height
             );
           }}
         />

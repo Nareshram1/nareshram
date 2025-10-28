@@ -1,0 +1,30 @@
+1.Spendify - Spendify: Open-source expense tracker app in Expo React. Track, categorize expenses, visualize spending habits, and manage finances seamlessly. Powered by Node.js, Express.js, PostgreSQL, JWT authentication for a secure cross-platform experience.
+2.Blueband - (This project involves developing a real-time tracking system for rally cars using Next.js as the frontend framework. The application displays the live location of rally cars on an interactive map, utilizing socket connections for seamless, real-time updates. The system also features SOS and OK.)
+3.Fuck-playstore - (F*#k playstore (nothing personal)
+A personal showcase for my applications – because who needs gatekeepers when you have JavaScript?
+
+Browse My Masterpieces (and maybe a few quirky experiments)
+Why This Exists (Besides Pure Boredom):
+Let's be real, paying the "developer tax" to Play Store and App Store just to test out your brilliant (or not-so-brilliant) ideas as an amateur dev? That's tougher than debugging a legacy codebase on a Friday afternoon. This project grants me, the humble developer, the ultimate control over my apps. No more begging for approval or deciphering cryptic rejection emails!
+
+The Truth, The Whole Truth, and Nothing But The Truth:
+Okay, so part of it was indeed getting bored of staring at my ceiling. But mostly, it's about freedom! Freedom to deploy a calculator app that only adds 2 and 2 (and still gets it wrong sometimes), or a social media app where the only user is me. Plus, building your own app store just sounds cool, right? It's like having your own digital lemonade stand, but with less sticky mess and more code.
+
+Secure Distribution (Mostly)
+Upload and distribute your apps securely with admin-only access. Share your creations with anyone while maintaining full control. (Disclaimer: "Secure" means I tried my best, don't go storing your secret cookie recipes here... yet.)
+
+Mobile Optimized (Because My Grandma Uses a Tablet)
+Designed for a seamless mobile experience. Your users can easily browse and download your apps on any device. Even my grandma, who still thinks the internet is magic smoke, can probably navigate this. Probably.)
+4.Yapspace
+5.Government-hrm
+6.Farmconnect - FarmConnect is a mobile app that connects farmers and locals for renting farming equipment and hiring field workers. Built with Expo React Native for a smooth user experience, it uses a Golang API for backend performance and MongoDB for flexible data management, streamlining agricultural resource sharing.
+7.SimbunewYear - Bored devs turned a joke into a quirky website project.
+8.Accelerate - (Create a data-driven problem recommendation system for optimized DSA practice.
+Analyze questions individually based on multiple factors:
+Frequency of appearance in interviews.
+ELO rating for accurate difficulty assessment.
+Topic dependencies to ensure structured learning.
+Optimize the learning path to reach mastery in the fastest way possible while ensuring the right amount of challenge. 
+)
+9.OneAgent - An Agent to automate workspace
+10.ICARUS - An AI skill mapper to job/internship
