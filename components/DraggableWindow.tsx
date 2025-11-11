@@ -204,7 +204,7 @@ const DraggableWindow: React.FC<DraggableWindowProps> = ({
           </button>
         </div>
       </div>
-      <div className="window-content bg-white h-[calc(100%-24px)] overflow-auto p-4">
+      <div className="window-content bg-white h-[calc(100%-24px)] overflow-clip p-4 box-border">
         {win.content}
       </div>
 

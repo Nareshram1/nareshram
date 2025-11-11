@@ -1,16 +1,20 @@
 "use client"
 
-import React, { useState, useEffect, useCallback } from 'react'; // <-- MODIFIED (added useCallback)
+import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image'
 import { 
   Folder, FileText, Globe, Mail, Settings, 
   Trash2, Volume2, User, 
-  Gamepad2
+  Gamepad2,
+  Hash,
+  LayoutGrid,
+  Paintbrush
 } from 'lucide-react';
 import { 
   WindowState, 
   Wallpaper, 
-  Win98PortfolioProps 
+  Win98PortfolioProps,
+  DesktopIconState
 } from '@/lib/types/portfolio.types';
 
 // Import the separated components
@@ -27,7 +31,9 @@ import PortfolioWebpageContent from './content/PortfolioWebpageContent';
 import SnakeGameContent from './content/SnakeGameContent';
 import MinesweeperContent from './content/MinesweeperContent';
 import TrollGame from './content/RetroGamesHub';
-
+import TicTacToeContent from './content/TicTacToeContent'; 
+import TetrisContent from './content/TetrisContent';
+import PaintContent from './content/PaintContent';
 // Main Portfolio Component
 const Win98Portfolio: React.FC<Win98PortfolioProps> = () => {
   const [windows, setWindows] = useState<WindowState[]>([]);
@@ -38,6 +44,20 @@ const Win98Portfolio: React.FC<Win98PortfolioProps> = () => {
   const [showSystemTray, setShowSystemTray] = useState<boolean>(false);
   const [cpuUsage, setCpuUsage] = useState<number>(0);
   const [volume, setVolume] = useState<number>(50);
+
+  const [desktopIcons, setDesktopIcons] = useState<DesktopIconState[]>([
+    { id: 'my-computer', label: 'My Computer', icon: <Folder className="text-yellow-600" size={32} />, x: 16, y: 16, action: () => createWindow('projects', 'My Computer', <ProjectsContent />, <Folder size={16} />) },
+    { id: 'homepage', label: 'My Homepage', icon: <Globe className="text-blue-600" size={32} />, x: 16, y: 106, action: () => createWindow('homepage', 'My Homepage - Internet Explorer', <PortfolioWebpageContent createWindow={createWindow} playClickSound={playClickSound} />, <Globe size={16} />, 640, 480) },
+    { id: 'readme', label: 'ReadMe.txt', icon: <FileText size={32} />, x: 16, y: 196, action: () => createWindow('readme', 'ReadMe.txt - Notepad', <ReadMeContent />, <FileText size={16} />, 500, 400) },
+    { id: 'snake', label: 'Snake', icon: <Gamepad2 className="text-purple-600" size={32} />, x: 16, y: 286, action: () => createWindow('snake_game', 'Snake', <SnakeGameContent />, <Gamepad2 size={16} />, 340, 420) },
+    { id: 'minesweeper', label: 'Minesweeper', icon: <Gamepad2 className="text-gray-700" size={32} />, x: 16, y: 376, action: () => createWindow('minesweeper', 'Minesweeper', <MinesweeperContent />, <Gamepad2 size={16} />, 260, 360) },
+    { id: 'tictactoe', label: 'Tic-Tac-Toe', icon: <Hash className="text-green-600" size={32} />, x: 116, y: 16, action: () => createWindow('tictactoe', 'Tic-Tac-Toe', <TicTacToeContent />, <Hash size={16} />, 250, 340) },
+    { id: 'tetris', label: 'Tetris', icon: <LayoutGrid className="text-blue-500" size={32} />, x: 116, y: 106, action: () => createWindow('tetris', 'Tetris', <TetrisContent />, <LayoutGrid size={16} />, 420, 520) },
+    // --- 5. ADD PAINT ICON TO THE LIST ---
+    { id: 'paint', label: 'Paint', icon: <Paintbrush className="text-red-500" size={32} />, x: 116, y: 196, action: () => createWindow('paint', 'Untitled - Paint', <PaintContent />, <Paintbrush size={16} />, 600, 450) },
+    { id: 'troll-game', label: "Don't play this", icon: <Gamepad2 className="text-gray-700" size={32} />, x: 116, y: 286, action: () => createWindow('game', 'Game', <TrollGame />, <Gamepad2 size={16} />, 260, 360) },
+    { id: 'recycle', label: 'Recycle Bin', icon: <Trash2 className="text-gray-700" size={32} />, x: 116, y: 376, action: () => createWindow('recycle', 'Recycle Bin', <RecycleBinContent />, <Trash2 size={16} />) },
+  ]);
   
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
@@ -160,6 +180,12 @@ const Win98Portfolio: React.FC<Win98PortfolioProps> = () => {
     );
   }, []);
 
+  const updateIconPos = useCallback((id: string, x: number, y: number) => {
+    setDesktopIcons(prevIcons =>
+      prevIcons.map(icon => (icon.id === id ? { ...icon, x, y } : icon))
+    );
+  }, []);
+
   const updateWindowSize = useCallback((id: string, width: number, height: number) => {
     setWindows(prevWindows =>
       prevWindows.map(w => (w.id === id ? { ...w, width, height } : w))
@@ -184,113 +210,21 @@ const Win98Portfolio: React.FC<Win98PortfolioProps> = () => {
       `}</style>
 
       {/* Desktop Icons */}
-      <div className="p-4 grid grid-cols-1 gap-2 w-24">
-        <DesktopIcon
-          icon={<Folder className="text-yellow-600" size={32} />}
-          label="My Computer"
-          onClick={() => {
-            playClickSound();
-            createWindow('projects', 'My Computer', <ProjectsContent />, <Folder size={16} />);
-          }}
-        />
-
-        <DesktopIcon
-          icon={<Globe className="text-blue-600" size={32} />}
-          label="My Homepage"
-          onClick={() => {
-            playClickSound();
-            createWindow(
-              'homepage', 
-              'My Homepage - Internet Explorer', 
-              <PortfolioWebpageContent 
-                createWindow={createWindow} 
-                playClickSound={playClickSound} 
-              />, 
-              <Globe size={16} />,
-              640, // Classic 640x480 vibe
-              480
-            );
-          }}
-        />
-        <DesktopIcon
-          icon={<FileText size={32} />}
-          label="ReadMe.txt"
-          onClick={() => {
-            playClickSound();
-            createWindow('readme', 'ReadMe.txt - Notepad', <ReadMeContent />, <FileText size={16} />, 500, 400);
-          }}
-        />
-        {/* <DesktopIcon
-          icon={<Folder className="text-yellow-600" size={32} />}
-          label="My Projects"
-          onClick={() => {
-            playClickSound();
-            createWindow(
-              'my_projects', 
-              'My Projects', 
-              <MyProjectsContent 
-                createWindow={createWindow} 
-                playClickSound={playClickSound} 
-              />, 
-              <Folder size={16} />,
-              500,
-              350
-            );
-          }}
-        /> */}
-        <DesktopIcon
-          icon={<Gamepad2 className="text-purple-600" size={32} />}
-          label="Snake"
-          onClick={() => {
-            playClickSound();
-            createWindow(
-              'snake_game', 
-              'Snake', 
-              <SnakeGameContent />, 
-              <Gamepad2 size={16} />,
-              340, // Adjust width
-              420  // Adjust height
-            );
-          }}
-        />
-        <DesktopIcon
-          icon={<Gamepad2 className="text-gray-700" size={32} />}
-          label="Minesweeper"
-          onClick={() => {
-            playClickSound();
-            createWindow(
-              'minesweeper', 
-              'Minesweeper', 
-              <MinesweeperContent />, 
-              <Gamepad2 size={16} />,
-              260, // Adjust width
-              360  // Adjust height
-            );
-          }}
-        />
-        <DesktopIcon
-          icon={<Gamepad2 className="text-gray-700" size={32} />}
-          label="Don't play this"
-          onClick={() => {
-            playClickSound();
-            createWindow(
-              'game', 
-              'Game', 
-              <TrollGame />, 
-              <Gamepad2 size={16} />,
-              260, // Adjust width
-              360  // Adjust height
-            );
-          }}
-        />
-        <DesktopIcon
-          icon={<Trash2 className="text-gray-700" size={32} />}
-          label="Recycle Bin"
-          onClick={() => {
-            playClickSound();
-            createWindow('recycle', 'Recycle Bin', <RecycleBinContent />, <Trash2 size={16} />);
-          }}
-        />
+      <div className="absolute top-0 left-0 w-full h-full">
+        {desktopIcons.map(icon => (
+          <DesktopIcon
+            key={icon.id}
+            icon={icon.icon}
+            label={icon.label}
+            x={icon.x}
+            y={icon.y}
+            onClick={() => {
+              playClickSound();
+              icon.action();
+            }}
+            onMove={(newX, newY) => updateIconPos(icon.id, newX, newY)}
+          />
+        ))}
       </div>
 
       {/* Windows */}
@@ -433,7 +367,7 @@ const Win98Portfolio: React.FC<Win98PortfolioProps> = () => {
               playClickSound();
               const messages = [
                 "It's always time to code! 💻",
-                "Don't forget to take a break! ☕",
+                "Don't forget to take a break! ☕️",
                 "You've been here for a while... 👀",
                 "Time flies when you're having fun! 🚀",
                 "Quick! Check your emails! 📧"

@@ -27,19 +27,26 @@ const INITIAL_SNAKE = [{ x: 7, y: 7 }];
 const SnakeGameContent: React.FC = () => {
   const [snake, setSnake] = useState<Coordinate[]>(INITIAL_SNAKE);
   const [food, setFood] = useState<Coordinate>(() => createFood(INITIAL_SNAKE));
-  const [direction, setDirection] = useState<Direction>("RIGHT");
+  const [direction, setDirection] = useState<Direction>("RIGHT"); // Only used for initial state
   const [speed, setSpeed] = useState<number>(INITIAL_SPEED);
   const [score, setScore] = useState<number>(0);
   const [gameOver, setGameOver] = useState<boolean>(false);
   const [started, setStarted] = useState<boolean>(false);
 
-  const directionRef = useRef<Direction>(direction);
+  // --- MODIFIED: Split direction refs to prevent 180-degree turn bug ---
+  const nextDirectionRef = useRef<Direction>(direction);
+  const currentDirectionRef = useRef<Direction>(direction);
+  // --- END MODIFICATION ---
+
   const loopRef = useRef<NodeJS.Timeout | null>(null);
 
   const restartGame = () => {
     setSnake(INITIAL_SNAKE);
     setFood(createFood(INITIAL_SNAKE));
-    directionRef.current = "RIGHT";
+    // --- MODIFIED ---
+    nextDirectionRef.current = "RIGHT";
+    currentDirectionRef.current = "RIGHT";
+    // --- END MODIFICATION ---
     setSpeed(INITIAL_SPEED);
     setScore(0);
     setGameOver(false);
@@ -49,15 +56,21 @@ const SnakeGameContent: React.FC = () => {
   const moveSnake = useCallback(() => {
     if (gameOver) return;
     setSnake((prev) => {
+      // --- MODIFIED: Update current direction at the start of the move ---
+      currentDirectionRef.current = nextDirectionRef.current;
+      // --- END MODIFICATION ---
+
       const newSnake = [...prev];
       const head = { ...newSnake[0] };
 
-      switch (directionRef.current) {
+      // --- MODIFIED: Move based on the direction for this tick ---
+      switch (currentDirectionRef.current) {
         case "UP": head.y -= 1; break;
         case "DOWN": head.y += 1; break;
         case "LEFT": head.x -= 1; break;
         case "RIGHT": head.x += 1; break;
       }
+      // --- END MODIFICATION ---
 
       // wall or self collision
       if (
@@ -95,22 +108,26 @@ const SnakeGameContent: React.FC = () => {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      const dir = directionRef.current;
+      // --- MODIFIED: Check against the *last moved* direction ---
+      const dir = currentDirectionRef.current;
       switch (e.key) {
-        case "ArrowUp": if (dir !== "DOWN") directionRef.current = "UP"; break;
-        case "ArrowDown": if (dir !== "UP") directionRef.current = "DOWN"; break;
-        case "ArrowLeft": if (dir !== "RIGHT") directionRef.current = "LEFT"; break;
-        case "ArrowRight": if (dir !== "LEFT") directionRef.current = "RIGHT"; break;
-        case "Enter": if (!started) restartGame(); break;
+        case "ArrowUp": if (dir !== "DOWN") nextDirectionRef.current = "UP"; break;
+        case "ArrowDown": if (dir !== "UP") nextDirectionRef.current = "DOWN"; break;
+        case "ArrowLeft": if (dir !== "RIGHT") nextDirectionRef.current = "LEFT"; break;
+        case "ArrowRight": if (dir !== "LEFT") nextDirectionRef.current = "RIGHT"; break;
+        case "Enter": if (!started || gameOver) restartGame(); break; // Allow restart on Enter if game over
       }
+      // --- END MODIFICATION ---
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [started]);
+  }, [started, gameOver]); // Added gameOver dependency
 
   return (
     <div
-      className="flex flex-col items-center justify-center min-h-screen bg-[#1a1a1a] text-white relative overflow-hidden"
+      // --- MODIFIED: Replaced min-h-screen with h-full w-full ---
+      className="flex flex-col items-center justify-center h-full w-full bg-[#1a1a1a] text-white relative overflow-hidden"
+      // --- END MODIFICATION ---
       style={{
         fontFamily: '"Press Start 2P", monospace',
       }}

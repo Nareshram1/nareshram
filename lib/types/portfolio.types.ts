@@ -39,9 +39,21 @@ export interface DesktopIconProps {
   icon: React.ReactNode;
   label: string;
   onClick: () => void;
+  x: number;
+  y: number;
+  onMove: (x: number, y: number) => void;
 }
 
 // Props for the main Portfolio component
 export interface Win98PortfolioProps {
   onShutdown: () => void;
+}
+
+export interface DesktopIconState {
+  id: string;
+  label: string;
+  icon: React.ReactNode;
+  x: number;
+  y: number;
+  action: () => void;
 }
