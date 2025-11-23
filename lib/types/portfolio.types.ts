@@ -10,12 +10,8 @@ export interface WindowState {
   height: number;
   minimized: boolean;
   maximized: boolean;
-  prevData: {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  } | null;
+  zIndex: number; // <--- NEW
+  prevData: { x: number; y: number; width: number; height: number } | null;
 }
 
 // Type for wallpaper keys

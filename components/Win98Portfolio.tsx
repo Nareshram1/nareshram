@@ -2,17 +2,17 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image'
-import { 
-  Folder, FileText, Globe, Mail, Settings, 
-  Trash2, Volume2, User, 
+import {
+  Folder, FileText, Globe, Mail, Settings,
+  Trash2, Volume2, User,
   Gamepad2,
   Hash,
   LayoutGrid,
   Paintbrush
 } from 'lucide-react';
-import { 
-  WindowState, 
-  Wallpaper, 
+import {
+  WindowState,
+  Wallpaper,
   Win98PortfolioProps,
   DesktopIconState
 } from '@/lib/types/portfolio.types';
@@ -31,11 +31,13 @@ import PortfolioWebpageContent from './content/PortfolioWebpageContent';
 import SnakeGameContent from './content/SnakeGameContent';
 import MinesweeperContent from './content/MinesweeperContent';
 import TrollGame from './content/RetroGamesHub';
-import TicTacToeContent from './content/TicTacToeContent'; 
+import TicTacToeContent from './content/TicTacToeContent';
 import TetrisContent from './content/TetrisContent';
 import PaintContent from './content/PaintContent';
+import BSOD from './content/BSOD';
+
 // Main Portfolio Component
-const Win98Portfolio: React.FC<Win98PortfolioProps> = () => {
+const Win98Portfolio: React.FC<Win98PortfolioProps> = ({ onShutdown }) => {
   const [windows, setWindows] = useState<WindowState[]>([]);
   const [startMenuOpen, setStartMenuOpen] = useState<boolean>(false);
   const [time, setTime] = useState<Date>(new Date());
@@ -44,6 +46,8 @@ const Win98Portfolio: React.FC<Win98PortfolioProps> = () => {
   const [showSystemTray, setShowSystemTray] = useState<boolean>(false);
   const [cpuUsage, setCpuUsage] = useState<number>(0);
   const [volume, setVolume] = useState<number>(50);
+  const [nextZIndex, setNextZIndex] = useState(10); // Z-Index Manager
+  const [bsod, setBsod] = useState(false); // BSOD Trigger
 
   const [desktopIcons, setDesktopIcons] = useState<DesktopIconState[]>([
     { id: 'my-computer', label: 'My Computer', icon: <Folder className="text-yellow-600" size={32} />, x: 16, y: 16, action: () => createWindow('projects', 'My Computer', <ProjectsContent />, <Folder size={16} />) },
@@ -57,12 +61,33 @@ const Win98Portfolio: React.FC<Win98PortfolioProps> = () => {
     { id: 'paint', label: 'Paint', icon: <Paintbrush className="text-red-500" size={32} />, x: 116, y: 196, action: () => createWindow('paint', 'Untitled - Paint', <PaintContent />, <Paintbrush size={16} />, 600, 450) },
     { id: 'troll-game', label: "Don't play this", icon: <Gamepad2 className="text-gray-700" size={32} />, x: 116, y: 286, action: () => createWindow('game', 'Game', <TrollGame />, <Gamepad2 size={16} />, 260, 360) },
     { id: 'recycle', label: 'Recycle Bin', icon: <Trash2 className="text-gray-700" size={32} />, x: 116, y: 376, action: () => createWindow('recycle', 'Recycle Bin', <RecycleBinContent />, <Trash2 size={16} />) },
+    {
+      id: 'bsod-trap',
+      label: "Don't Click",
+      icon: <div className="text-red-600 font-bold text-xl">!</div>,
+      x: 20,
+      y: 450,
+      action: () => setTimeout(() => setBsod(true), 500)
+    },
   ]);
-  
+
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  const bringToFront = (id: string) => {
+    setActiveWindow(id);
+    setWindows(prev => prev.map(w => {
+      if (w.id === id) {
+        // Only update if it's not already at the top to prevent render loops
+        if (w.zIndex === nextZIndex - 1) return w;
+        return { ...w, zIndex: nextZIndex };
+      }
+      return w;
+    }));
+    setNextZIndex(z => z + 1);
+  };
 
   // Simulate CPU usage
   useEffect(() => {
@@ -90,34 +115,27 @@ const Win98Portfolio: React.FC<Win98PortfolioProps> = () => {
     green: 'bg-green-700'
   };
 
-  const createWindow = (
-    id: string, 
-    title: string, 
-    content: React.ReactNode, 
-    icon: React.ReactNode, 
-    width: number = 600, 
-    height: number = 400
-  ) => {
-    if (windows.find(w => w.id === id)) {
-      setActiveWindow(id);
-      restoreWindow(id);
+  const createWindow = (id: string, title: string, content: React.ReactNode, icon: React.ReactNode, w = 600, h = 400) => {
+    setStartMenuOpen(false);
+    if (windows.find(win => win.id === id)) {
+      bringToFront(id);
+      // Restore if minimized
+      setWindows(prev => prev.map(win => win.id === id ? { ...win, minimized: false } : win));
       return;
     }
 
     const newWindow: WindowState = {
-      id,
-      title,
-      content,
-      icon,
-      x: 50 + windows.length * 30,
-      y: 50 + windows.length * 30,
-      width,
-      height,
-      minimized: false,
-      maximized: false,
+      id, title, content, icon,
+      x: 20 + (windows.length * 30) % 200,
+      y: 20 + (windows.length * 30) % 200,
+      width: w, height: h,
+      minimized: false, maximized: false,
+      zIndex: nextZIndex, // Assign current top Z
       prevData: null
     };
-    setWindows([...windows, newWindow]);
+
+    setWindows(prev => [...prev, newWindow]);
+    setNextZIndex(z => z + 1);
     setActiveWindow(id);
   };
 
@@ -130,15 +148,28 @@ const Win98Portfolio: React.FC<Win98PortfolioProps> = () => {
     }
   };
 
+  const handleShutdown = () => {
+    setStartMenuOpen(false);
+    if (onShutdown) onShutdown();
+  };
+
+  const handleRestart = () => {
+    setBsod(false);
+    setWindows([]);
+  };
+
+  // --- RENDER ---
+  if (bsod) return <BSOD onRestart={handleRestart} />;
+
   const minimizeWindow = (id: string) => {
     playClickSound();
-    setWindows(windows.map(w => w.id === id ? {...w, minimized: true} : w));
+    setWindows(windows.map(w => w.id === id ? { ...w, minimized: true } : w));
     const remainingWindows = windows.filter(w => w.id !== id && !w.minimized);
     setActiveWindow(remainingWindows.length > 0 ? remainingWindows[remainingWindows.length - 1].id : null);
   };
 
   const restoreWindow = (id: string) => {
-    setWindows(windows.map(w => w.id === id ? {...w, minimized: false} : w));
+    setWindows(windows.map(w => w.id === id ? { ...w, minimized: false } : w));
     setActiveWindow(id);
   };
 
@@ -193,12 +224,13 @@ const Win98Portfolio: React.FC<Win98PortfolioProps> = () => {
   }, []);
 
   return (
-    <div 
+    <div
       className={`h-screen w-screen ${wallpapers[wallpaper]} overflow-hidden relative font-sans`}
       onClick={() => {
         if (showSystemTray) setShowSystemTray(false);
       }}
     >
+      <div className="pointer-events-none fixed inset-0 z-9999 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%] opacity-20" />
       <style jsx global>{`
         @import url('https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&display=swap');
         .font-sans {
@@ -240,6 +272,7 @@ const Win98Portfolio: React.FC<Win98PortfolioProps> = () => {
           updateWindowPos={updateWindowPos}
           updateWindowSize={updateWindowSize}
           playClickSound={playClickSound}
+          bringToFront={bringToFront}
         />
       ))}
 
@@ -252,8 +285,8 @@ const Win98Portfolio: React.FC<Win98PortfolioProps> = () => {
             setStartMenuOpen(!startMenuOpen);
           }}
         >
-            <img src='/start-logo.png' alt='Start' width={25} height={25}/>
-          
+          <img src='/start-logo.png' alt='Start' width={25} height={25} />
+
           <span className="text-black">Start</span>
         </button>
 
@@ -299,11 +332,10 @@ const Win98Portfolio: React.FC<Win98PortfolioProps> = () => {
           {windows.map(win => (
             <button
               key={win.id}
-              className={`px-2 py-1 border-2 text-sm flex items-center gap-1 h-7 min-w-[100px] max-w-[200px] ${
-                activeWindow === win.id && !win.minimized
+              className={`px-2 py-1 border-2 text-sm flex items-center gap-1 h-7 min-w-[100px] max-w-[200px] ${activeWindow === win.id && !win.minimized
                   ? 'bg-[#a0a0a0] font-bold'
                   : 'bg-[#c0c0c0]'
-              }`}
+                }`}
               style={{
                 borderTopColor: activeWindow === win.id && !win.minimized ? '#000000' : '#ffffff',
                 borderLeftColor: activeWindow === win.id && !win.minimized ? '#000000' : '#ffffff',
@@ -335,12 +367,12 @@ const Win98Portfolio: React.FC<Win98PortfolioProps> = () => {
           borderBottomColor: '#ffffff'
         }}>
           {/* CPU Indicator */}
-          <div 
+          <div
             className="relative group cursor-pointer"
             title={`CPU Usage: ${cpuUsage}%`}
           >
             <div className="w-4 h-4 bg-gray-700 border border-gray-900 flex items-end justify-center overflow-hidden">
-              <div 
+              <div
                 className="w-full bg-green-500 transition-all duration-300"
                 style={{ height: `${cpuUsage}%` }}
               />
@@ -430,7 +462,7 @@ const Win98Portfolio: React.FC<Win98PortfolioProps> = () => {
           <div className="bg-gradient-to-b from-[#000080] to-[#1084d0] text-white py-2 px-3 font-bold text-xl flex items-end">
             <span className="italic text-2xl">Windows</span><span className="font-normal text-lg">98</span>
           </div>
-          
+
           <div className="p-1">
             <button
               className="w-full text-left px-3 py-2 hover:bg-[#000080] hover:text-white flex items-center gap-2"
@@ -485,10 +517,10 @@ const Win98Portfolio: React.FC<Win98PortfolioProps> = () => {
             <div className="border-t-2 border-[#808080] my-1 mx-2"></div>
             <button
               className="w-full text-left px-3 py-2 hover:bg-[#000080] hover:text-white flex items-center gap-2"
-              onClick={() => { 
+              onClick={() => {
                 playClickSound();
-                alert('Thanks for visiting! 👋');
-              }} 
+                handleShutdown();
+              }}
             >
               <Volume2 size={20} />
               Shut Down...

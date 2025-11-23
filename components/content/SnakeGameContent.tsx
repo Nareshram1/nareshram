@@ -155,17 +155,17 @@ const SnakeGameContent: React.FC = () => {
           width: GRID_SIZE * CELL_SIZE,
           height: GRID_SIZE * CELL_SIZE,
           display: "grid",
-          gridTemplateColumns: `repeat(${GRID_SIZE}, 1fr)`,
+          gridTemplateColumns: `repeat(${GRID_SIZE}, ${CELL_SIZE}px)`,
+          gridTemplateRows: `repeat(${GRID_SIZE}, ${CELL_SIZE}px)`,
         }}
       >
         {snake.map((s, i) => (
           <div
             key={i}
-            className={`${
-              i === 0
+            className={`${i === 0
                 ? "bg-green-400 shadow-[0_0_10px_#00ff00]"
                 : "bg-green-700"
-            }`}
+              }`}
             style={{
               gridColumn: s.x + 1,
               gridRow: s.y + 1,
