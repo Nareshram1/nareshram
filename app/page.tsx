@@ -4,7 +4,8 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 
 import { Volume2 } from "lucide-react";
 import dynamic from 'next/dynamic'
- 
+import ShutdownScreen from '../components/system/ShutdownScreen';
+
 const Win98PortfolioComponent = dynamic(() => import('../components/Win98Portfolio'), { ssr: false })
 type BootStep = "login" | "booting" | "desktop" | "shutdown";
 
@@ -23,8 +24,7 @@ export default function HomePage() {
       audioRef.current.play().catch((e) => console.error("Audio play failed:", e));
     }
 
-    setBootStep("booting");
-    setTimeout(() => setBootStep("desktop"), 2000);
+    setBootStep("desktop");
   }, [booting]); // Dependency on 'booting' state
 
   const handleShutdown = useCallback(() => {
@@ -83,14 +83,14 @@ export default function HomePage() {
           >
             {/* Title Bar - Mimicking Win98 style */}
             <div className="w-full bg-[#000080] text-white py-1 px-2 text-sm flex items-center justify-between font-bold cursor-default"
-                 style={{ borderBottom: '1px solid #c0c0c0', marginBottom: '24px' }}>
-                Windows 98 Portfolio
-                <div className="flex">
-                    <button className="w-4 h-4 bg-[#c0c0c0] border border-solid border-gray-700 mr-1 text-xs leading-none flex items-center justify-center"
-                            style={{ borderTopColor: '#fff', borderLeftColor: '#fff' }}>_</button>
-                    <button className="w-4 h-4 bg-[#c0c0c0] border border-solid border-gray-700 text-xs leading-none flex items-center justify-center"
-                            style={{ borderTopColor: '#fff', borderLeftColor: '#fff' }}>X</button>
-                </div>
+              style={{ borderBottom: '1px solid #c0c0c0', marginBottom: '24px' }}>
+              Windows 98 Portfolio
+              <div className="flex">
+                <button className="w-4 h-4 bg-[#c0c0c0] border border-solid border-gray-700 mr-1 text-xs leading-none flex items-center justify-center"
+                  style={{ borderTopColor: '#fff', borderLeftColor: '#fff' }}>_</button>
+                <button className="w-4 h-4 bg-[#c0c0c0] border border-solid border-gray-700 text-xs leading-none flex items-center justify-center"
+                  style={{ borderTopColor: '#fff', borderLeftColor: '#fff' }}>X</button>
+              </div>
             </div>
 
 
@@ -100,18 +100,18 @@ export default function HomePage() {
 
             {/* Faux Input Fields (for visual effect) */}
             <div className="w-full mb-6 text-black font-ms-sans-serif text-base">
-                <div className="flex items-center mb-2">
-                    <label className="w-24 shrink-0">User name:</label>
-                    <input type="text" value="Guest" readOnly
-                           className="flex-grow bg-white border-2 border-solid border-gray-700 px-2 py-1"
-                           style={{ borderTopColor: '#808080', borderLeftColor: '#808080', borderRightColor: '#ffffff', borderBottomColor: '#ffffff' }} />
-                </div>
-                <div className="flex items-center">
-                    <label className="w-24 shrink-0">Password:</label>
-                    <input type="password" value="********" readOnly
-                           className="flex-grow bg-white border-2 border-solid border-gray-700 px-2 py-1"
-                           style={{ borderTopColor: '#808080', borderLeftColor: '#808080', borderRightColor: '#ffffff', borderBottomColor: '#ffffff' }} />
-                </div>
+              <div className="flex items-center mb-2">
+                <label className="w-24 shrink-0">User name:</label>
+                <input type="text" value="Guest" readOnly
+                  className="flex-grow bg-white border-2 border-solid border-gray-700 px-2 py-1"
+                  style={{ borderTopColor: '#808080', borderLeftColor: '#808080', borderRightColor: '#ffffff', borderBottomColor: '#ffffff' }} />
+              </div>
+              <div className="flex items-center">
+                <label className="w-24 shrink-0">Password:</label>
+                <input type="password" value="********" readOnly
+                  className="flex-grow bg-white border-2 border-solid border-gray-700 px-2 py-1"
+                  style={{ borderTopColor: '#808080', borderLeftColor: '#808080', borderRightColor: '#ffffff', borderBottomColor: '#ffffff' }} />
+              </div>
             </div>
 
 
@@ -157,25 +157,7 @@ export default function HomePage() {
 
       {/* --- Shutdown Screen --- */}
       {bootStep === "shutdown" && (
-        <div className="h-screen w-screen bg-black flex items-center justify-center">
-          <div className="text-center">
-            <h1 className="text-orange-500 text-4xl font-bold mb-4">
-              It&apos;s now safe to turn off your computer.
-            </h1>
-            <button
-              onClick={handleRestart}
-              className="mt-8 px-6 py-2 bg-[#c0c0c0] border-2 font-bold text-black"
-              style={{
-                borderTopColor: "#ffffff",
-                borderLeftColor: "#ffffff",
-                borderRightColor: "#000000",
-                borderBottomColor: "#000000",
-              }}
-            >
-              Restart
-            </button>
-          </div>
-        </div>
+        <ShutdownScreen onRestart={handleRestart} />
       )}
 
       {/* --- Desktop --- */}

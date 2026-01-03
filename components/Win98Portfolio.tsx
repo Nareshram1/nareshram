@@ -8,7 +8,8 @@ import {
   Gamepad2,
   Hash,
   LayoutGrid,
-  Paintbrush
+  Paintbrush,
+  Music
 } from 'lucide-react';
 import {
   WindowState,
@@ -35,6 +36,9 @@ import TicTacToeContent from './content/TicTacToeContent';
 import TetrisContent from './content/TetrisContent';
 import PaintContent from './content/PaintContent';
 import BSOD from './content/BSOD';
+import BootSequence from './system/BootSequence';
+import WinampContent from './content/WinampContent';
+import RunDialog from './system/RunDialog';
 
 // Main Portfolio Component
 const Win98Portfolio: React.FC<Win98PortfolioProps> = ({ onShutdown }) => {
@@ -48,6 +52,7 @@ const Win98Portfolio: React.FC<Win98PortfolioProps> = ({ onShutdown }) => {
   const [volume, setVolume] = useState<number>(50);
   const [nextZIndex, setNextZIndex] = useState(10); // Z-Index Manager
   const [bsod, setBsod] = useState(false); // BSOD Trigger
+  const [booted, setBooted] = useState(false); // Boot Sequence State
 
   const [desktopIcons, setDesktopIcons] = useState<DesktopIconState[]>([
     { id: 'my-computer', label: 'My Computer', icon: <Folder className="text-yellow-600" size={32} />, x: 16, y: 16, action: () => createWindow('projects', 'My Computer', <ProjectsContent />, <Folder size={16} />) },
@@ -55,20 +60,21 @@ const Win98Portfolio: React.FC<Win98PortfolioProps> = ({ onShutdown }) => {
     { id: 'readme', label: 'ReadMe.txt', icon: <FileText size={32} />, x: 16, y: 196, action: () => createWindow('readme', 'ReadMe.txt - Notepad', <ReadMeContent />, <FileText size={16} />, 500, 400) },
     { id: 'snake', label: 'Snake', icon: <Gamepad2 className="text-purple-600" size={32} />, x: 16, y: 286, action: () => createWindow('snake_game', 'Snake', <SnakeGameContent />, <Gamepad2 size={16} />, 340, 420) },
     { id: 'minesweeper', label: 'Minesweeper', icon: <Gamepad2 className="text-gray-700" size={32} />, x: 16, y: 376, action: () => createWindow('minesweeper', 'Minesweeper', <MinesweeperContent />, <Gamepad2 size={16} />, 260, 360) },
+    { id: 'winamp', label: 'Winamp', icon: <Music className="text-orange-500" size={32} />, x: 16, y: 466, action: () => createWindow('winamp', 'Winamp', <WinampContent />, <Music size={16} />, 300, 400) },
     { id: 'tictactoe', label: 'Tic-Tac-Toe', icon: <Hash className="text-green-600" size={32} />, x: 116, y: 16, action: () => createWindow('tictactoe', 'Tic-Tac-Toe', <TicTacToeContent />, <Hash size={16} />, 250, 340) },
     { id: 'tetris', label: 'Tetris', icon: <LayoutGrid className="text-blue-500" size={32} />, x: 116, y: 106, action: () => createWindow('tetris', 'Tetris', <TetrisContent />, <LayoutGrid size={16} />, 420, 520) },
     // --- 5. ADD PAINT ICON TO THE LIST ---
     { id: 'paint', label: 'Paint', icon: <Paintbrush className="text-red-500" size={32} />, x: 116, y: 196, action: () => createWindow('paint', 'Untitled - Paint', <PaintContent />, <Paintbrush size={16} />, 600, 450) },
     { id: 'troll-game', label: "Don't play this", icon: <Gamepad2 className="text-gray-700" size={32} />, x: 116, y: 286, action: () => createWindow('game', 'Game', <TrollGame />, <Gamepad2 size={16} />, 260, 360) },
     { id: 'recycle', label: 'Recycle Bin', icon: <Trash2 className="text-gray-700" size={32} />, x: 116, y: 376, action: () => createWindow('recycle', 'Recycle Bin', <RecycleBinContent />, <Trash2 size={16} />) },
-    {
-      id: 'bsod-trap',
-      label: "Don't Click",
-      icon: <div className="text-red-600 font-bold text-xl">!</div>,
-      x: 20,
-      y: 450,
-      action: () => setTimeout(() => setBsod(true), 500)
-    },
+    // {
+    //   id: 'bsod-trap',
+    //   label: "Don't Click",
+    //   icon: <div className="text-red-600 font-bold text-xl">!</div>,
+    //   x: 20,
+    //   y: 450,
+    //   action: () => setTimeout(() => setBsod(true), 500)
+    // },
   ]);
 
   useEffect(() => {
@@ -158,7 +164,39 @@ const Win98Portfolio: React.FC<Win98PortfolioProps> = ({ onShutdown }) => {
     setWindows([]);
   };
 
+  const handleRunCommand = (cmd: string) => {
+    const command = cmd.toLowerCase();
+    closeWindow('run');
+
+    switch (command) {
+      case 'notepad':
+      case 'readme':
+        createWindow('readme', 'ReadMe.txt - Notepad', <ReadMeContent />, <FileText size={16} />, 500, 400);
+        break;
+      case 'winamp':
+        createWindow('winamp', 'Winamp', <WinampContent />, <Music size={16} />, 300, 400);
+        break;
+      case 'explorer':
+      case 'my computer':
+        createWindow('projects', 'My Computer', <ProjectsContent />, <Folder size={16} />);
+        break;
+      case 'shutdown':
+        handleShutdown();
+        break;
+      case 'calc':
+      case 'calculator':
+        alert("Calculator is not installed.");
+        break;
+      case 'minesweeper':
+        createWindow('minesweeper', 'Minesweeper', <MinesweeperContent />, <Gamepad2 size={16} />, 260, 360);
+        break;
+      default:
+        alert(`Cannot find the file '${cmd}' (or one of its components). Make sure the path and filename are correct and that all required libraries are available.`);
+    }
+  };
+
   // --- RENDER ---
+  if (!booted) return <BootSequence onComplete={() => setBooted(true)} />;
   if (bsod) return <BSOD onRestart={handleRestart} />;
 
   const minimizeWindow = (id: string) => {
@@ -308,7 +346,7 @@ const Win98Portfolio: React.FC<Win98PortfolioProps> = ({ onShutdown }) => {
             className="w-7 h-7 border-2 border-transparent hover:border-white hover:border-t-white hover:border-l-white hover:border-r-black hover:border-b-black flex items-center justify-center bg-[#c0c0c0]"
             onClick={() => {
               playClickSound();
-              createWindow('contact', 'Outlook Express - New Message', <ContactContent />, <Mail size={16} />);
+              createWindow('contact', 'Outlook Express - New Message', <ContactContent onClose={() => closeWindow('contact')} />, <Mail size={16} />, 640, 500);
             }}
             title="Outlook Express"
           >
@@ -333,8 +371,8 @@ const Win98Portfolio: React.FC<Win98PortfolioProps> = ({ onShutdown }) => {
             <button
               key={win.id}
               className={`px-2 py-1 border-2 text-sm flex items-center gap-1 h-7 min-w-[100px] max-w-[200px] ${activeWindow === win.id && !win.minimized
-                  ? 'bg-[#a0a0a0] font-bold'
-                  : 'bg-[#c0c0c0]'
+                ? 'bg-[#a0a0a0] font-bold'
+                : 'bg-[#c0c0c0]'
                 }`}
               style={{
                 borderTopColor: activeWindow === win.id && !win.minimized ? '#000000' : '#ffffff',
@@ -508,11 +546,32 @@ const Win98Portfolio: React.FC<Win98PortfolioProps> = ({ onShutdown }) => {
               className="w-full text-left px-3 py-2 hover:bg-[#000080] hover:text-white flex items-center gap-2"
               onClick={() => {
                 playClickSound();
-                createWindow('contact', 'Outlook Express - New Message', <ContactContent />, <Mail size={16} />);
+                createWindow('contact', 'Outlook Express - New Message', <ContactContent onClose={() => closeWindow('contact')} />, <Mail size={16} />, 640, 500);
               }}
             >
               <Mail size={20} />
               Contact
+            </button>
+            <button
+              className="w-full text-left px-3 py-2 hover:bg-[#000080] hover:text-white flex items-center gap-2"
+              onClick={() => {
+                playClickSound();
+                createWindow('winamp', 'Winamp', <WinampContent />, <Music size={16} />, 300, 400);
+              }}
+            >
+              <Music size={20} />
+              Winamp Media Player
+            </button>
+            <div className="border-t-2 border-[#808080] my-1 mx-2"></div>
+            <button
+              className="w-full text-left px-3 py-2 hover:bg-[#000080] hover:text-white flex items-center gap-2"
+              onClick={() => {
+                playClickSound();
+                createWindow('run', 'Run', <RunDialog onExecute={handleRunCommand} onCancel={() => closeWindow('run')} />, <Folder size={16} />, 350, 180);
+              }}
+            >
+              <Folder size={20} />
+              Run...
             </button>
             <div className="border-t-2 border-[#808080] my-1 mx-2"></div>
             <button
